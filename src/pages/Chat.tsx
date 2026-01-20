@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, Send, FileText, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Mic, Send, Menu, ChevronRight, AlertTriangle, X, List } from 'lucide-react';
 import VoiceVisualizer from '../components/VoiceVisualizer';
 import { useStore } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
@@ -19,7 +19,7 @@ const MOCK_CONTRACT_TEXT = [
 const Chat = () => {
   const { chatMessages, addChatMessage, isAnalyzing, setIsAnalyzing } = useStore();
   const [inputText, setInputText] = useState('');
-  const [currentClauseIndex, setCurrentClauseIndex] = useState<number | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
@@ -36,6 +36,16 @@ const Chat = () => {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const scrollToMessage = (id: string) => {
+    const element = document.getElementById(`msg-${id}`);
+    if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        // enhance highlight effect
+        element.classList.add("ring-2", "ring-blue-400", "ring-offset-2");
+        setTimeout(() => element.classList.remove("ring-2", "ring-blue-400", "ring-offset-2"), 2000);
+    }
   };
 
   useEffect(() => {
@@ -55,47 +65,23 @@ const Chat = () => {
   }, [isAnalyzing]);
 
   // Helper to simulate streaming text
-  const streamResponse = async (fullText: string) => {
-    // 1. Create an empty assistant message first
+  const streamResponse = async (fullText: string, clauseId?: number) => {
     const messageId = Date.now().toString();
     addChatMessage({
       id: messageId,
       role: 'assistant',
       content: '', // Start empty
+      clauseId: clauseId, // Attach clause Info
       timestamp: new Date(),
     });
 
-    // 2. Turn on TTS for the full text immediately
     speak(fullText);
 
-    // 3. Stream characters to the existing message 
-    // Note: Since we are using Zustand, we might need a way to update the *last* message.
-    // However, for this prototype, let's just cheat a bit by updating local state or assume we can
-    // just append to the store. 
-    // Actually, properly updating the store item is better.
-    // But since `addChatMessage` appends, we need an `updateLastMessage` action in the store ideally.
-    // For now, let's just make it look like streaming by adding chunks if we can't update.
-    // Wait, let's implement a local "streaming buffer" or just assume we can use a local state for the *current* 
-    // message being typed, then commit it? 
-    // Or easier: Just use a ref to the current message content and force update.
-    
     let currentText = "";
-    
-    // We need a way to update the last message in the store for true "streaming" persistence.
-    // Let's modify the store in a separate step? No, let's just do a hacky local update for now 
-    // or better, let's add `updateLastMessage` to the store in the next step if needed.
-    // For now, I'll simulate it by "typing effect" locally then saving? 
-    // No, users expect to see it grow. 
-    // Let's rely on a helper that we will add to the store, OR just re-add the message with more content?
-    // Re-adding (replacing) the last message is a common pattern.
     
     for (let i = 0; i < fullText.length; i++) {
         currentText += fullText[i];
-        // In a real app, you'd have an updateMessage(id, content) action.
-        // For this prototype, I will assume we can just replace the last message or 
-        // I will implement a local 'streamingMessage' state that overlays.
         
-        // Let's use a "local" streaming state effectively
         useStore.setState(state => {
             const lastMsg = state.chatMessages[state.chatMessages.length - 1];
             if (lastMsg && lastMsg.id === messageId) {
@@ -106,7 +92,7 @@ const Chat = () => {
             return state;
         });
         
-        await delay(30); // Typing speed
+        await delay(30); 
     }
   };
 
@@ -117,16 +103,13 @@ const Chat = () => {
 
     await delay(1000);
     const msg2 = "잠시만요, 중요한 부분을 발견했어요. 제 2조를 보시면 영업지역에 대한 보호 범위가 설정되어 있지 않아요. 이건 나중에 인근에 같은 브랜드 매장이 생겨도 막을 수 없다는 뜻이에요.";
-    setCurrentClauseIndex(1); 
-    await streamResponse(msg2);
+    await streamResponse(msg2, 1); // Article 2
     
     await delay(2000); 
     const msg3 = "그리고 제 4조 위약금 항목도 주의하셔야 해요. 중도 해지 시 위약금이 표준 계약서보다 과도하게 설정되어 있습니다.";
-    setCurrentClauseIndex(3); 
-    await streamResponse(msg3);
+    await streamResponse(msg3, 3); // Article 4
     
     await delay(1000);
-    setCurrentClauseIndex(null);
     setIsAnalyzing(false);
     const msg4 = "전반적으로 몇 가지 수정이 필요한 조항들이 보입니다. 상세한 리포트를 보시겠어요?, 아니면 더 궁금한 점이 있으신가요?";
     await streamResponse(msg4);
@@ -136,7 +119,6 @@ const Chat = () => {
 
   const handleSendMessage = () => {
     if (!inputText.trim()) return;
-    
     if (isListening) stopListening();
 
     addChatMessage({
@@ -152,29 +134,96 @@ const Chat = () => {
     
     setTimeout(async () => {
         let response = `네, "${userQuestion}"에 대해 말씀이시군요. 해당 내용은...`;
-        
+        let clauseId: number | undefined;
+
         if (userQuestion.includes("위약금")) {
             response = "위약금은 계약을 중도에 해지할 때 내야 하는 돈입니다. 현재 계약서에는 남은 기간 로열티의 300%로 되어있는데, 공정위 권장은 보통 10% 내외입니다. 너무 과도하네요.";
+            clauseId = 3;
         } else if (userQuestion.includes("영업지역")) {
             response = "영업지역은 내 가게 주변에 또 다른 프랜차이즈가 못 들어오게 막는 구역입니다. 이 계약서에는 그 내용이 빠져있어서 위험합니다.";
+            clauseId = 1;
         }
 
-        await streamResponse(response);
+        await streamResponse(response, clauseId);
     }, 1000);
   };
 
   const toggleVoice = () => {
-    if (isListening) {
-        stopListening();
-    } else {
-        startListening();
-    }
+    isListening ? stopListening() : startListening();
   };
 
+  // Filter detected risks for sidebar
+  const detectedRisks = chatMessages.filter(m => m.clauseId !== undefined);
+
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)]">
+    <div className="flex flex-col h-[calc(100vh-140px)] relative">
+      {/* Header/Sidebar Toggle */}
+      <div className="absolute top-4 right-4 z-20">
+        <button 
+          onClick={() => setIsSidebarOpen(true)}
+          className="bg-white p-2 rounded-full shadow-md text-slate-600 hover:bg-slate-50 transition-colors"
+        >
+            <List className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Sidebar Drawer */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+            <>
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.5 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="absolute inset-0 bg-black z-40"
+                />
+                <motion.div 
+                    initial={{ x: '100%' }}
+                    animate={{ x: 0 }}
+                    exit={{ x: '100%' }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    className="absolute inset-y-0 right-0 w-[85%] max-w-sm bg-white z-50 shadow-2xl p-6 overflow-y-auto"
+                >
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-bold text-slate-800">발견된 위험 조항</h2>
+                        <button onClick={() => setIsSidebarOpen(false)}><X className="w-6 h-6 text-slate-400" /></button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                        {detectedRisks.length > 0 ? (
+                            detectedRisks.map((msg, idx) => (
+                                <div 
+                                    key={idx} 
+                                    onClick={() => {
+                                        setIsSidebarOpen(false);
+                                        scrollToMessage(msg.id);
+                                    }}
+                                    className="bg-amber-50 border border-amber-200 p-4 rounded-xl active:bg-amber-100 cursor-pointer transition-colors"
+                                >
+                                    <div className="flex items-center space-x-2 text-amber-700 font-bold mb-1 text-sm">
+                                        <AlertTriangle className="w-4 h-4" />
+                                        <span>위험 조항 #{idx + 1}</span>
+                                    </div>
+                                    <p className="text-sm text-slate-700 font-medium line-clamp-2">
+                                        {MOCK_CONTRACT_TEXT[msg.clauseId!]}
+                                    </p>
+                                    <p className="text-xs text-slate-400 mt-2 text-right">
+                                        대화 보러가기 →
+                                    </p>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-slate-400 text-center py-10">아직 발견된 위험 조항이 없습니다.</p>
+                        )}
+                    </div>
+                </motion.div>
+            </>
+        )}
+      </AnimatePresence>
+
       {/* 1. Voice Agent Visualizer */}
-      <div className="flex-none bg-white">
+      <div className="flex-none bg-white header-bg">
         <VoiceVisualizer isActive={isSpeaking || isListening} />
         {isListening && <p className="text-center text-blue-500 text-sm animate-pulse font-medium">듣고 있어요...</p>}
       </div>
@@ -184,10 +233,11 @@ const Chat = () => {
         {chatMessages.map((msg) => (
           <motion.div
             key={msg.id}
+            id={`msg-${msg.id}`} // ID for scrolling
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-              "flex flex-col max-w-[85%] space-y-1",
+              "flex flex-col max-w-[90%] space-y-1 transition-all duration-300 rounded-2xl",
               msg.role === 'user' ? "ml-auto items-end" : "mr-auto items-start"
             )}
           >
@@ -198,37 +248,29 @@ const Chat = () => {
                 : "bg-white border border-slate-100 text-slate-800 rounded-tl-none"
             )}>
               {msg.content}
+              
+              {/* Embedded Clause Card */}
+              {msg.clauseId !== undefined && (
+                <div className="mt-4 pt-3 border-t border-slate-100/20">
+                     <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl text-slate-800">
+                        <div className="flex items-center space-x-2 text-amber-700 font-bold mb-2 text-xs">
+                            <AlertTriangle className="w-3 h-3" />
+                            <span>관련 조항</span>
+                        </div>
+                        <div className="text-xs font-medium bg-white/50 p-2 rounded-lg">
+                             {MOCK_CONTRACT_TEXT[msg.clauseId]}
+                        </div>
+                     </div>
+                </div>
+              )}
             </div>
+            
             <span className="text-xs text-slate-400 px-1">
               {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           </motion.div>
         ))}
-        
-        {/* Live Contract Context Card (Toast style) */}
-        <AnimatePresence>
-          {currentClauseIndex !== null && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="w-full bg-amber-50 border border-amber-200 p-4 rounded-xl shadow-lg mt-4 cursor-pointer"
-              onClick={() => navigate('/result')}
-            >
-              <div className="flex items-center space-x-2 text-amber-700 font-bold mb-2 text-sm">
-                <AlertTriangle className="w-4 h-4" />
-                <span>관련 조항 발견</span>
-              </div>
-              <div className="bg-white p-3 rounded-lg border border-amber-100 text-slate-600 text-sm font-medium">
-                {MOCK_CONTRACT_TEXT[currentClauseIndex]}
-              </div>
-              <div className="mt-2 flex items-center justify-end text-xs text-amber-600 font-bold">
-                상세 보기 <ChevronRight className="w-3 h-3 ml-1" />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        
+     
         <div ref={messagesEndRef} />
       </div>
 

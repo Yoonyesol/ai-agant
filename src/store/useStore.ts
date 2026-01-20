@@ -13,6 +13,7 @@ interface ChatMessage {
   content: string;
   timestamp: Date;
   isAudio?: boolean;
+  clauseId?: number; // Index of the clause discussed
 }
 
 interface AppState {
