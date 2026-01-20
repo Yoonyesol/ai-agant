@@ -42,62 +42,101 @@ const Chat = () => {
     scrollToBottom();
   }, [chatMessages]);
 
-  // Update input text when transcript changes
   useEffect(() => {
     if (transcript) {
         setInputText(transcript);
-        // Optional: Auto-send if silence detected could be added here
     }
   }, [transcript]);
 
   useEffect(() => {
-    // Simulate Analysis Flow on mount if analyzing
     if (isAnalyzing && chatMessages.length === 0) {
       simulateAnalysis();
     }
   }, [isAnalyzing]);
 
+  // Helper to simulate streaming text
+  const streamResponse = async (fullText: string) => {
+    // 1. Create an empty assistant message first
+    const messageId = Date.now().toString();
+    addChatMessage({
+      id: messageId,
+      role: 'assistant',
+      content: '', // Start empty
+      timestamp: new Date(),
+    });
+
+    // 2. Turn on TTS for the full text immediately
+    speak(fullText);
+
+    // 3. Stream characters to the existing message 
+    // Note: Since we are using Zustand, we might need a way to update the *last* message.
+    // However, for this prototype, let's just cheat a bit by updating local state or assume we can
+    // just append to the store. 
+    // Actually, properly updating the store item is better.
+    // But since `addChatMessage` appends, we need an `updateLastMessage` action in the store ideally.
+    // For now, let's just make it look like streaming by adding chunks if we can't update.
+    // Wait, let's implement a local "streaming buffer" or just assume we can use a local state for the *current* 
+    // message being typed, then commit it? 
+    // Or easier: Just use a ref to the current message content and force update.
+    
+    let currentText = "";
+    
+    // We need a way to update the last message in the store for true "streaming" persistence.
+    // Let's modify the store in a separate step? No, let's just do a hacky local update for now 
+    // or better, let's add `updateLastMessage` to the store in the next step if needed.
+    // For now, I'll simulate it by "typing effect" locally then saving? 
+    // No, users expect to see it grow. 
+    // Let's rely on a helper that we will add to the store, OR just re-add the message with more content?
+    // Re-adding (replacing) the last message is a common pattern.
+    
+    for (let i = 0; i < fullText.length; i++) {
+        currentText += fullText[i];
+        // In a real app, you'd have an updateMessage(id, content) action.
+        // For this prototype, I will assume we can just replace the last message or 
+        // I will implement a local 'streamingMessage' state that overlays.
+        
+        // Let's use a "local" streaming state effectively
+        useStore.setState(state => {
+            const lastMsg = state.chatMessages[state.chatMessages.length - 1];
+            if (lastMsg && lastMsg.id === messageId) {
+                 const newMessages = [...state.chatMessages];
+                 newMessages[newMessages.length - 1] = { ...lastMsg, content: currentText };
+                 return { chatMessages: newMessages };
+            }
+            return state;
+        });
+        
+        await delay(30); // Typing speed
+    }
+  };
+
   const simulateAnalysis = async () => {
     await delay(1000);
     const msg1 = "안녕하세요, 사용자님. 업로드해주신 계약서를 분석하고 있어요. 잠시만 기다려주세요...";
-    addBotMessage(msg1);
-    speak(msg1);
+    await streamResponse(msg1);
 
-    await delay(4000);
+    await delay(1000);
     const msg2 = "잠시만요, 중요한 부분을 발견했어요. 제 2조를 보시면 영업지역에 대한 보호 범위가 설정되어 있지 않아요. 이건 나중에 인근에 같은 브랜드 매장이 생겨도 막을 수 없다는 뜻이에요.";
-    setCurrentClauseIndex(1); // "영업지역 미설정"
-    addBotMessage(msg2);
-    speak(msg2);
+    setCurrentClauseIndex(1); 
+    await streamResponse(msg2);
     
-    await delay(12000); // Wait for speech roughly
+    await delay(2000); 
     const msg3 = "그리고 제 4조 위약금 항목도 주의하셔야 해요. 중도 해지 시 위약금이 표준 계약서보다 과도하게 설정되어 있습니다.";
-    setCurrentClauseIndex(3); // "위약금"
-    addBotMessage(msg3);
-    speak(msg3);
+    setCurrentClauseIndex(3); 
+    await streamResponse(msg3);
     
-    await delay(8000);
+    await delay(1000);
     setCurrentClauseIndex(null);
     setIsAnalyzing(false);
     const msg4 = "전반적으로 몇 가지 수정이 필요한 조항들이 보입니다. 상세한 리포트를 보시겠어요?, 아니면 더 궁금한 점이 있으신가요?";
-    addBotMessage(msg4);
-    speak(msg4);
+    await streamResponse(msg4);
   };
 
   const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-  const addBotMessage = (text: string) => {
-    addChatMessage({
-      id: Date.now().toString(),
-      role: 'assistant',
-      content: text,
-      timestamp: new Date(),
-    });
-  };
-
   const handleSendMessage = () => {
     if (!inputText.trim()) return;
     
-    // Stop listening if sending
     if (isListening) stopListening();
 
     addChatMessage({
@@ -109,21 +148,18 @@ const Chat = () => {
     
     const userQuestion = inputText;
     setInputText('');
-    setTranscript(''); // Clear transcript
+    setTranscript('');
     
-    // Mock Response Logic
-    setTimeout(() => {
+    setTimeout(async () => {
         let response = `네, "${userQuestion}"에 대해 말씀이시군요. 해당 내용은...`;
         
-        // Simple keyword matching for demo
         if (userQuestion.includes("위약금")) {
             response = "위약금은 계약을 중도에 해지할 때 내야 하는 돈입니다. 현재 계약서에는 남은 기간 로열티의 300%로 되어있는데, 공정위 권장은 보통 10% 내외입니다. 너무 과도하네요.";
         } else if (userQuestion.includes("영업지역")) {
             response = "영업지역은 내 가게 주변에 또 다른 프랜차이즈가 못 들어오게 막는 구역입니다. 이 계약서에는 그 내용이 빠져있어서 위험합니다.";
         }
 
-        addBotMessage(response);
-        speak(response);
+        await streamResponse(response);
     }, 1000);
   };
 
