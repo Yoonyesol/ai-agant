@@ -4,6 +4,7 @@ import MobileLayout from './layout/MobileLayout';
 import Home from './pages/Home';
 import Chat from './pages/Chat';
 import Result from './pages/Result';
+import Preview from './pages/Preview';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="chat" element={<Chat />} />
           <Route path="result" element={<Result />} />
         </Route>
+        <Route path="/preview" element={<Preview />} />
       </Routes>
     </BrowserRouter>
   );

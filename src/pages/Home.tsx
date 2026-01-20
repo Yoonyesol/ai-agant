@@ -6,7 +6,7 @@ import { cn } from '../lib/utils';
 
 const Home = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { setFile, setIsAnalyzing } = useStore();
+  const { file, setFile, setIsAnalyzing } = useStore(); // Get file from store
   const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
 
@@ -18,11 +18,11 @@ const Home = () => {
 
   const handleFileUpload = (file: File) => {
     setFile(file);
-    setIsAnalyzing(true);
-    // Simulate navigation to analysis/chat
+    // Navigate to preview first, do not start analysis yet
+    // setIsAnalyzing(true); 
     setTimeout(() => {
-        navigate('/chat');
-    }, 1500);
+        navigate('/preview');
+    }, 500);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -54,6 +54,38 @@ const Home = () => {
 
       {/* Upload Card */}
       <section>
+        {file ? (
+           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-lg text-center animate-in fade-in zoom-in duration-300">
+              <div className="bg-green-100 p-6 rounded-full inline-flex mb-4">
+                <ShieldCheck className="w-10 h-10 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-1">파일이 준비되었습니다</h3>
+              <p className="text-slate-500 text-sm mb-6 max-w-[200px] mx-auto truncate font-medium bg-slate-100 px-3 py-1 rounded-full">{file.name}</p>
+              
+              <div className="grid gap-3">
+                <button 
+                    onClick={() => navigate('/preview')}
+                    className="w-full bg-blue-600 text-white px-6 py-4 rounded-xl font-bold shadow-lg shadow-blue-900/20 hover:bg-blue-700 transition-colors"
+                >
+                    미리보기로 이동
+                </button>
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full bg-white text-slate-500 border border-slate-200 px-6 py-3 rounded-xl font-medium hover:bg-slate-50 transition-colors"
+                >
+                  다른 파일 선택하기
+                </button>
+              </div>
+              
+               <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept=".pdf,image/*"
+                onChange={handleFileChange}
+              />
+           </div>
+        ) : (
         <div 
           onClick={() => fileInputRef.current?.click()}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -82,6 +114,7 @@ const Home = () => {
             onChange={handleFileChange}
           />
         </div>
+        )}
       </section>
 
       {/* Feature Preview List */}

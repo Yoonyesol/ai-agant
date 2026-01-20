@@ -9,8 +9,8 @@ const MobileLayout = () => {
 
   const navItems = [
     { icon: Home, label: '홈', path: '/' },
-    { icon: FileText, label: '분석 결과', path: '/result' },
     { icon: Mic, label: 'AI 비서', path: '/chat' },
+    { icon: FileText, label: '분석 결과', path: '/result' },
   ];
 
   return (
