@@ -1,11 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, AlertTriangle, TrendingUp, TrendingDown, Info, ChevronDown } from 'lucide-react';
+import { AlertCircle, CheckCircle, AlertTriangle, TrendingUp, TrendingDown, Info, ChevronDown, MessageSquare } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStore } from '../store/useStore';
+import { useNavigate } from 'react-router-dom';
 
 const Result = () => {
   const { analysisResult } = useStore();
+  const navigate = useNavigate();
 
   // Mock Data
   const reportData = {
@@ -30,7 +32,7 @@ const Result = () => {
   };
 
   return (
-    <div className="space-y-6 pb-8 animate-in slide-in-from-bottom-4 duration-700">
+    <div className="h-full overflow-y-auto w-full p-6 pb-24 relative scroll-smooth space-y-6 animate-in slide-in-from-bottom-4 duration-700">
       {/* Header with Disclaimer */}
       <div className="bg-slate-100 p-3 rounded-lg flex items-start space-x-2 text-xs text-slate-500">
         <Info className="w-4 h-4 flex-none mt-0.5" />
@@ -134,6 +136,17 @@ const Result = () => {
           해당 브랜드는 폐점률이 낮아 안정적이지만, 최근 매출 성장세가 둔화되고 있습니다. 인근 가맹점 현황을 직접 방문해보시는 것을 추천드립니다.
         </div>
       </section>
+
+      {/* Back to Chat Floating Button */}
+      <div className="fixed bottom-6 w-full max-w-md left-1/2 -translate-x-1/2 px-6 pointer-events-none">
+          <button 
+            onClick={() => navigate('/chat')}
+            className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold shadow-xl shadow-slate-900/20 flex items-center justify-center space-x-2 pointer-events-auto hover:bg-slate-800 transition-colors"
+          >
+              <MessageSquare className="w-5 h-5" />
+              <span>채팅으로 돌아가기</span>
+          </button>
+      </div>
     </div>
   );
 };

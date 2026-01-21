@@ -40,7 +40,7 @@ const Home = () => {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
+    <div className="h-full overflow-y-auto w-full p-6 pb-20 relative scroll-smooth space-y-8 animate-in fade-in duration-700">
       {/* Hero Section */}
       <section className="space-y-4 pt-4">
         <div className="inline-flex items-center space-x-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
