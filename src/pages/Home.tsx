@@ -17,6 +17,12 @@ const Home = () => {
   };
 
   const handleFileUpload = (file: File) => {
+    const fileName = file.name.toLowerCase();
+    if (file.type !== "application/pdf" && !fileName.endsWith(".pdf")) {
+      alert("PDF 파일만 업로드 가능합니다.");
+      return;
+    }
+
     setFile(file);
     // Navigate to preview first, do not start analysis yet
     // setIsAnalyzing(true); 
@@ -110,7 +116,7 @@ const Home = () => {
             type="file" 
             ref={fileInputRef} 
             className="hidden" 
-            accept=".pdf,image/*"
+            accept=".pdf, application/pdf"
             onChange={handleFileChange}
           />
         </div>
