@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, ChevronLeft } from 'lucide-react';
 
@@ -16,7 +15,7 @@ const MobileLayout = () => {
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-md p-1.5 sticky top-0 z-50 border-b border-slate-100 flex justify-between items-center safe-area-top flex-none">
             {isHome ? (
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">
+                <h1 className="ml-2 text-xl font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">
                 돌다리
                 </h1>
             ) : (
