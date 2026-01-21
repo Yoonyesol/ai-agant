@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Chat from './pages/Chat';
 import Result from './pages/Result';
 import Preview from './pages/Preview';
+import AnalysisLoading from './pages/AnalysisLoading';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="result" element={<Result />} />
         </Route>
         <Route path="/preview" element={<Preview />} />
+        <Route path="/analysis-loading" element={<AnalysisLoading />} />
       </Routes>
     </BrowserRouter>
   );

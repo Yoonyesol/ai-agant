@@ -10,7 +10,7 @@ import 'react-pdf/dist/Page/TextLayer.css';
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const Preview = () => {
-  const { file, setIsAnalyzing } = useStore();
+  const { file } = useStore();
   const navigate = useNavigate();
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
@@ -35,8 +35,7 @@ const Preview = () => {
   };
 
   const startAnalysis = () => {
-    setIsAnalyzing(true);
-    navigate('/chat');
+    navigate('/analysis-loading');
   };
 
   return (
