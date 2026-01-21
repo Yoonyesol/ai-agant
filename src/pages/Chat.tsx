@@ -34,6 +34,16 @@ const Chat = () => {
   const [pdfContainerWidth, setPdfContainerWidth] = useState<number>(0);
   const [pdfScale, setPdfScale] = useState(1.0);
   const [highlight, setHighlight] = useState<{ page: number; yPercent: number; heightPercent: number } | null>(null);
+  
+  // Interactive Text Highlights State
+  const [selectedLegalClause, setSelectedLegalClause] = useState<{ title: string; content: string; law: string } | null>(null);
+  
+  // Mock clickable text zones (yellow highlights)
+  const CLICKABLE_HIGHLIGHTS = [
+    { id: 1, page: 1, x: 10, y: 20, width: 80, height: 8, law: '가맹사업법 제12조', title: '영업지역 보호 의무', content: '가맹본부는 가맹점사업자의 영업에 지장을 주지 않도록 일정 거리 내 신규 가맹점 설립을 제한할 의무가 있습니다.' },
+    { id: 2, page: 1, x: 10, y: 50, width: 85, height: 6, law: '상법 제398조', title: '계약기간 및 갱신', content: '계약 기간은 양 당사자의 합의에 따라 정하되, 일방적인 단축이나 연장은 불가능합니다.' },
+    { id: 3, page: 1, x: 10, y: 65, width: 75, height: 10, law: '공정거래법 제23조', title: '과도한 위약금 금지', content: '가맹본부는 가맹점사업자에게 통상적인 범위를 초과하는 손해배상액을 예정하거나 위약금을 부과할 수 없습니다. 위반 시 3천만원 이하의 과태료가 부과됩니다.' },
+  ];
 
   const { isListening, transcript, setTranscript, startListening, stopListening, speak, isSpeaking } = useSpeech();
 
@@ -166,6 +176,7 @@ const Chat = () => {
   };
 
   return (
+    <div className="h-full w-full relative overflow-hidden">
     <div className="flex flex-col h-full relative" ref={containerRef}>
       
       {/* 1. TOP PANEL: Avatar */}
@@ -351,17 +362,24 @@ const Chat = () => {
                                                 renderTextLayer={false}
                                                 renderAnnotationLayer={false}
                                             />
-                                            {isHighlightedPage && (
-                                                <motion.div 
+                                            
+                                            {/* Clickable Yellow Highlights */}
+                                            {CLICKABLE_HIGHLIGHTS.filter(h => h.page === pageNumber).map((zone) => (
+                                                <motion.div
+                                                    key={zone.id}
                                                     initial={{ opacity: 0 }}
                                                     animate={{ opacity: 1 }}
-                                                    className="absolute inset-x-0 bg-red-400/20 mix-blend-multiply border-y-2 border-red-500 z-10 pointer-events-none"
-                                                    style={{ 
-                                                        top: `${highlight.yPercent}%`, 
-                                                        height: `${highlight.heightPercent}%`
+                                                    whileHover={{ opacity: 0.9, scale: 1.01 }}
+                                                    className="absolute bg-yellow-300/40 border-2 border-yellow-400/60 cursor-pointer z-20 rounded-sm hover:bg-yellow-300/60 transition-all"
+                                                    style={{
+                                                        left: `${zone.x}%`,
+                                                        top: `${zone.y}%`,
+                                                        width: `${zone.width}%`,
+                                                        height: `${zone.height}%`,
                                                     }}
+                                                    onClick={() => setSelectedLegalClause({ title: zone.title, content: zone.content, law: zone.law })}
                                                 />
-                                            )}
+                                            ))}
                                         </div>
                                     );
                                 })}
@@ -393,8 +411,74 @@ const Chat = () => {
                   <Result />
              </div>
              
-          </div>
+           </div>
       </div>
+      
+    </div>
+    
+    {/* Legal Clause Modal (Slide-up from bottom - INSIDE Mobile Frame) */}
+    {selectedLegalClause && (
+        <>
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.5 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedLegalClause(null)}
+                className="absolute inset-0 bg-black z-[100] pointer-events-auto"
+            />
+            <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-[110] max-h-[70vh] overflow-y-auto"
+            >
+                <div className="p-6 pb-8">
+                    {/* Handle Bar */}
+                    <div className="flex justify-center mb-4">
+                        <div className="w-12 h-1.5 bg-slate-300 rounded-full"></div>
+                    </div>
+                    
+                    {/* Close Button */}
+                    <button 
+                        onClick={() => setSelectedLegalClause(null)}
+                        className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full transition-colors"
+                    >
+                        <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    
+                    {/* Content */}
+                    <div className="space-y-4">
+                        <div className="flex items-center space-x-3">
+                            <div className="bg-blue-100 p-2 rounded-lg">
+                                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-xs text-blue-600 font-bold">{selectedLegalClause.law}</p>
+                                <h3 className="text-lg font-bold text-slate-900">{selectedLegalClause.title}</h3>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap break-words">
+                                {selectedLegalClause.content}
+                            </p>
+                        </div>
+                        
+                        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl">
+                            <p className="text-xs text-blue-800 font-medium">
+                                <span className="font-bold">💡 AI 조언:</span> 이 조항은 귀하의 계약서와 비교하여 검토가 필요합니다. 전문가 상담을 권장드립니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        </>
+    )}
     </div>
   );
 };
