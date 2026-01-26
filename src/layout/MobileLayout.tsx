@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, ChevronLeft } from 'lucide-react';
+import { Menu, ChevronLeft, Home } from 'lucide-react';
 
 const MobileLayout = () => {
     const navigate = useNavigate();
@@ -19,13 +19,23 @@ const MobileLayout = () => {
                             바른계약
                         </h1>
                     ) : (
-                        <button
-                            onClick={() => navigate('/')}
-                            className="flex items-center text-slate-600 hover:bg-slate-100 -ml-2 p-2 pr-3 rounded-full transition-colors"
-                        >
-                            <ChevronLeft className="w-5 h-5 mr-0.5" />
-                            <span className="font-bold text-lg">홈으로</span>
-                        </button>
+                        <div className="flex items-center w-full relative justify-center">
+                            <button
+                                onClick={() => location.pathname === '/chat' ? navigate('/preview') : navigate(-1)}
+                                className="absolute left-0 p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors -ml-2"
+                            >
+                                <ChevronLeft className="w-6 h-6" />
+                            </button>
+                            <h1 className="text-lg font-bold text-slate-800">
+                                {location.pathname === '/chat' ? 'AI 분석' : '홈으로'}
+                            </h1>
+                            <button
+                                onClick={() => navigate('/')}
+                                className="absolute right-0 p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors -mr-2"
+                            >
+                                <Home className="w-6 h-6" />
+                            </button>
+                        </div>
                     )}
                 </header>
 
@@ -35,8 +45,8 @@ const MobileLayout = () => {
                     <Outlet />
                 </main>
 
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

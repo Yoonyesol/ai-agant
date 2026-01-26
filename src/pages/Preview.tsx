@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { ChevronLeft, ChevronRight, Check, FileText, ArrowLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, FileText, Home } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -47,13 +47,25 @@ const Preview = () => {
       <div className="w-full h-full max-w-md bg-slate-50 relative shadow-2xl flex flex-col overflow-hidden">
 
         {/* Header - Sticky within the mobile frame */}
-        <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm flex items-center justify-between p-3 px-5 safe-area-top">
-          <button onClick={() => navigate('/')} className="p-2 text-slate-600 hover:bg-slate-100 -ml-2 rounded-full transition-colors">
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <span className="font-bold text-slate-800 text-xl">계약서 미리보기</span>
-          <div className="w-10"></div>
-        </div>
+        <header className="bg-white/80 backdrop-blur-md p-3 px-5 sticky top-0 z-50 border-b border-slate-100 flex justify-between items-center safe-area-top flex-none">
+          <div className="flex items-center w-full relative justify-center">
+            <button
+              onClick={() => navigate('/')}
+              className="absolute left-0 p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors -ml-2"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <h1 className="text-lg font-bold text-slate-800">
+              계약서 미리보기
+            </h1>
+            <button
+              onClick={() => navigate('/')}
+              className="absolute right-0 p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors -mr-2"
+            >
+              <Home className="w-6 h-6" />
+            </button>
+          </div>
+        </header>
 
         {/* PDF Viewer Area */}
         <div
