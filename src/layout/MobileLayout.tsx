@@ -13,9 +13,9 @@ const MobileLayout = () => {
             <div className="w-full h-full max-w-md bg-slate-50 flex flex-col shadow-2xl relative overflow-hidden">
 
                 {/* Header */}
-                <header className="bg-white/80 backdrop-blur-md p-3 px-4 sticky top-0 z-50 border-b border-slate-100 flex justify-between items-center safe-area-top flex-none">
+                <header className="bg-white/80 backdrop-blur-md p-3 px-5 sticky top-0 z-50 border-b border-slate-100 flex justify-between items-center safe-area-top flex-none">
                     {isHome ? (
-                        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">
+                        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">
                             바른계약
                         </h1>
                     ) : (

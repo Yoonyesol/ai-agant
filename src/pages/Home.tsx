@@ -47,7 +47,7 @@ const Home = () => {
           <ShieldCheck className="w-4 h-4" />
           <span>안심 창업 파트너</span>
         </div>
-        <h2 className="text-3xl font-bold leading-tight text-slate-800">
+        <h2 className="text-3xl font-heading font-bold leading-tight text-slate-800">
           계약서, <br />
           <span className="text-blue-600">찍어서 올리면</span> <br />
           독소조항 끝.
@@ -71,13 +71,13 @@ const Home = () => {
             <div className="grid gap-3">
               <button
                 onClick={() => navigate('/preview')}
-                className="w-full bg-blue-600 text-white px-6 py-4 rounded-xl font-bold shadow-lg shadow-blue-900/20 hover:bg-blue-700 transition-colors"
+                className="w-full bg-blue-600 text-white px-6 py-4 rounded-xl font-button font-bold shadow-lg shadow-blue-900/20 hover:bg-blue-700 transition-colors"
               >
                 미리보기로 이동
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full bg-white text-slate-500 border border-slate-200 px-6 py-3 rounded-xl font-medium hover:bg-slate-50 transition-colors"
+                className="w-full bg-white text-slate-500 border border-slate-200 px-6 py-3 rounded-xl font-button font-bold hover:bg-slate-50 transition-colors"
               >
                 다른 파일 선택하기
               </button>
@@ -109,7 +109,7 @@ const Home = () => {
             <p className="text-slate-500">
               PDF 파일이나 사진을 <br />여기에 끌어다 놓으세요
             </p>
-            <div className="mt-6 bg-slate-900 text-white px-6 py-3 rounded-xl font-medium shadow-lg shadow-blue-900/20 group-hover:bg-blue-600 transition-colors">
+            <div className="mt-6 bg-slate-900 text-white px-6 py-3 rounded-xl font-button font-bold shadow-lg shadow-blue-900/20 group-hover:bg-blue-600 transition-colors">
               파일 선택하기
             </div>
             <input
