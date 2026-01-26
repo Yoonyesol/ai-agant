@@ -30,7 +30,11 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
+        sans: ["Noto Sans KR", "sans-serif"],
+        brand: ["S-CoreDream-9Black", "sans-serif"],
+        heading: ["Pretendard", "sans-serif"],
+        body: ["Noto Sans KR", "sans-serif"],
+        button: ["NanumSquare", "sans-serif"],
       },
       animation: {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
